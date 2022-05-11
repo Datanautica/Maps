@@ -1,0 +1,17 @@
+library(shiny)
+library(leaflet)
+library(tmaptools)
+library(sf)
+library(leaflet)
+library(readxl)
+library(dplyr)
+library(DT)
+
+shinyUI (fluidPage(
+  leafletOutput("mymap"),
+  p(),
+  
+  h2("Città"),
+  DT::dataTableOutput("mytable")
+)
+)
