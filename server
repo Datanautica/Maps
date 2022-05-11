@@ -1,0 +1,32 @@
+nycounties <- rgdal::readOGR("https://raw.githubusercontent.com/openpolis/geojson-italy/master/geojson/limits_IT_provinces.geojson")
+
+city <- c("Novara", "Milano","Torino","Bari","Cagliari","Perugia")
+dimension <- as.numeric(c("1500", "5000","3000","4600","4500","8604"))
+df <- data.frame(city, dimension)
+
+nycounties@data = data.frame(nycounties@data,
+                             df[match(nycounties@data[, "prov_name"],
+                                      df[, "city"]),])
+
+nycounties$dimension[is.na(nycounties$dimension)] = 0
+
+pal <- colorNumeric("viridis", domain=c(1,max(nycounties$dimension)))
+
+shinyServer(
+  function(input, output, session) {
+    points <- eventReactive(input$recalc, {
+      cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
+    }, ignoreNULL = FALSE)
+    
+   
+    output$mymap <- renderLeaflet({
+      leaflet(nycounties) %>%
+        addTiles() %>%
+        addPolygons(stroke = TRUE, smoothFactor = 0.3, fillOpacity = 1,
+                    fillColor = ~pal(nycounties$dimension), weight = 1, color = "black", label = nycounties$prov_name) %>%
+        addLegend(pal = pal, values = ~(nycounties$dimension), opacity = 1.0)
+    })
+    output$mytable = DT::renderDataTable({
+      df})
+  }
+)
